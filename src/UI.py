@@ -1256,7 +1256,7 @@ class App(tk.Tk):
     async def _listen(self):
         listener = winman.UserNotificationListener.current
         access   = await listener.request_access_async()
-        if access != winman.UserNotificationListenerAccessStatus.Allowed:
+        if int(access) != 1:  # 1 = UserNotificationListenerAccessStatus.Allowed
             self.after(0, self.log_msg,
                 "Accès notifications refusé ! "
                 "Active-les dans Paramètres → Système → Notifications.", "error")
