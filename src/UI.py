@@ -207,6 +207,8 @@ class App(tk.Tk):
         if KEYBOARD_OK:
             self._apply_shortcuts(silent=True)
 
+        if self._saved_pseudo_order:
+            self.log_msg(f"Ordre chargé : {' → '.join(self._saved_pseudo_order)}", "ok")
         self.refresh_characters()
 
         if not self._welcome_shown:
