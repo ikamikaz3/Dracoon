@@ -168,6 +168,12 @@ class App(tk.Tk):
         except Exception:
             self._char_skip_names: set[str] = set()
 
+        _raw_order = cfg.get("char_order", "[]") or "[]"
+        try:
+            self._saved_pseudo_order: list[str] = json.loads(_raw_order)
+        except Exception:
+            self._saved_pseudo_order: list[str] = []
+
         self._welcome_shown: bool = cfg.get("welcome_shown", "0") == "1"
 
         self.remove_notif_var       = tk.BooleanVar(value=cfg.get("remove_notif",       "1") == "1")
@@ -531,9 +537,11 @@ class App(tk.Tk):
         known     = set(win_map.keys())
         new_order = [(h, win_map[h]) for h, _ in self._char_order if h in known]
         existing  = {h for h, _ in new_order}
-        for h, p in windows:
-            if h not in existing:
-                new_order.append((h, p))
+        new_wins  = [(h, p) for h, p in windows if h not in existing]
+        if new_wins and self._saved_pseudo_order:
+            order_map = {p: i for i, p in enumerate(self._saved_pseudo_order)}
+            new_wins.sort(key=lambda hp: order_map.get(hp[1], len(order_map)))
+        new_order.extend(new_wins)
         self._char_order = new_order
         self._rebuild_char_list()
         if hasattr(self, "_af_chars_container"):
@@ -643,6 +651,7 @@ class App(tk.Tk):
         if self._drag_idx is not None:
             self._drag_idx = None
             self._rebuild_char_list()
+            self._persist_config()
 
     def _save_order(self):
         if not self._char_order:
@@ -657,6 +666,7 @@ class App(tk.Tk):
         ).start()
         if hasattr(self, "_af_chars_container"):
             self._rebuild_af_char_list()
+        self._persist_config()
 
     # ══════════════════════════════════════════════════════════════════════
     # ONGLET RACCOURCIS
@@ -855,12 +865,14 @@ class App(tk.Tk):
         focus_window(cycle_order[new_pos][1])
 
     def _persist_config(self):
+        self._saved_pseudo_order = [p for _, p in self._char_order]
         _save_config(_build_config(
             self._shortcut_next, self._shortcut_prev, self._shortcut_back,
             self._char_af_overrides, self._shortcut_main, self._char_main,
             self._welcome_shown, self._char_skip_names,
             self.remove_notif_var.get(),
             self.maximize_on_launch_var.get(),
+            char_order=self._saved_pseudo_order,
         ))
 
     # ── Gestion des exclusions de roulement ───────────────────────────────────

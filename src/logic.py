@@ -364,7 +364,8 @@ def _unhook_all():
 def _build_config(shortcut_next, shortcut_prev, shortcut_back,
                   char_af_overrides=None, shortcut_main=None, char_main=None,
                   welcome_shown=False, char_skip_names=None,
-                  remove_notif=False, maximize_on_launch=True) -> dict:    
+                  remove_notif=False, maximize_on_launch=True,
+                  char_order=None) -> dict:
     return {
         "shortcut_next":     shortcut_next,
         "shortcut_prev":     shortcut_prev,
@@ -376,7 +377,8 @@ def _build_config(shortcut_next, shortcut_prev, shortcut_back,
         "char_skip_names":   json.dumps(sorted(char_skip_names), ensure_ascii=False)
                              if char_skip_names else "[]",
         "remove_notif":        "1" if remove_notif else "0",
-        "maximize_on_launch":  "1" if maximize_on_launch else "0",                     
+        "maximize_on_launch":  "1" if maximize_on_launch else "0",
+        "char_order":          json.dumps(char_order or [], ensure_ascii=False),
     }
 
 
