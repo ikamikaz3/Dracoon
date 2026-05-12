@@ -651,6 +651,7 @@ class App(tk.Tk):
         if self._drag_idx is not None:
             self._drag_idx = None
             self._rebuild_char_list()
+            self._saved_pseudo_order = [p for _, p in self._char_order]
             self._persist_config()
 
     def _save_order(self):
@@ -666,6 +667,7 @@ class App(tk.Tk):
         ).start()
         if hasattr(self, "_af_chars_container"):
             self._rebuild_af_char_list()
+        self._saved_pseudo_order = [p for _, p in self._char_order]
         self._persist_config()
 
     # ══════════════════════════════════════════════════════════════════════
@@ -865,7 +867,6 @@ class App(tk.Tk):
         focus_window(cycle_order[new_pos][1])
 
     def _persist_config(self):
-        self._saved_pseudo_order = [p for _, p in self._char_order]
         _save_config(_build_config(
             self._shortcut_next, self._shortcut_prev, self._shortcut_back,
             self._char_af_overrides, self._shortcut_main, self._char_main,
