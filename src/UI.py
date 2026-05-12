@@ -207,8 +207,7 @@ class App(tk.Tk):
         if KEYBOARD_OK:
             self._apply_shortcuts(silent=True)
 
-        if self._saved_pseudo_order:
-            self.log_msg(f"Ordre chargé : {' → '.join(self._saved_pseudo_order)}", "ok")
+        self.log_msg(f"Ordre chargé : {self._saved_pseudo_order!r}", "ok")
         self.refresh_characters()
 
         if not self._welcome_shown:
@@ -973,8 +972,26 @@ class App(tk.Tk):
         tk.Label(f, text="Cliquez sur une icône pour désactiver ce type pour ce personnage uniquement",
                  bg=self.BG, fg=self.GRAY, font=self.S.Info.font).pack(anchor="w", padx=16)
 
-        self._af_chars_container = tk.Frame(f, bg=self.BG)
-        self._af_chars_container.pack(fill="x", padx=16, pady=(4, 0))
+        af_scroll = tk.Frame(f, bg=self.BG)
+        af_scroll.pack(fill="x", padx=16, pady=(4, 0))
+
+        self._af_canvas = tk.Canvas(af_scroll, bg=self.BG, highlightthickness=0, height=160)
+        af_sb = tk.Scrollbar(af_scroll, orient="vertical", command=self._af_canvas.yview)
+        self._af_canvas.configure(yscrollcommand=af_sb.set)
+        af_sb.pack(side="right", fill="y")
+        self._af_canvas.pack(side="left", fill="x", expand=True)
+
+        self._af_chars_container = tk.Frame(self._af_canvas, bg=self.BG)
+        self._af_chars_win = self._af_canvas.create_window(
+            (0, 0), window=self._af_chars_container, anchor="nw")
+
+        self._af_chars_container.bind("<Configure>",
+            lambda e: self._af_canvas.configure(
+                scrollregion=self._af_canvas.bbox("all")))
+        self._af_canvas.bind("<Configure>",
+            lambda e: self._af_canvas.itemconfig(self._af_chars_win, width=e.width))
+        self._af_canvas.bind("<MouseWheel>",
+            lambda e: self._af_canvas.yview_scroll(-1*(e.delta//120), "units"))
 
         ctrl = tk.Frame(f, bg=self.BG, pady=6)
         ctrl.pack(fill="x", padx=16)
@@ -1296,12 +1313,6 @@ class App(tk.Tk):
 
                     for notif in new_notifs:
                         seen_ids.add(notif.id)
-                        # ── Suppression bannière conditionnelle ───────────────
-                        if self.remove_notif_var.get():
-                            try:
-                                listener.remove_notification(notif.id)
-                            except Exception:
-                                pass
                         try:
                             binding = notif.notification.visual.get_binding(
                                 winnot.KnownNotificationBindings.toast_generic)
@@ -1386,6 +1397,13 @@ class App(tk.Tk):
                             if self.debug_var.get():
                                 self.after(0, self.log_msg,
                                     f"[debug] Exception notif : {e}", "debug")
+                        finally:
+                            # ── Suppression bannière : après lecture pour ne pas invalider l'objet notif
+                            if self.remove_notif_var.get():
+                                try:
+                                    listener.remove_notification(notif.id)
+                                except Exception:
+                                    pass
 
                     if len(seen_ids) > 500:
                         seen_ids.clear()
