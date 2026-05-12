@@ -1304,7 +1304,7 @@ class App(tk.Tk):
 
                 try:
                     notifications = await listener.get_notifications_async(
-                        winnot.NotificationKinds.Toast)
+                        1)  # NotificationKinds.Toast
                     new_notifs = [n for n in notifications if n.id not in seen_ids]
 
                     if new_notifs:
@@ -1315,7 +1315,7 @@ class App(tk.Tk):
                         seen_ids.add(notif.id)
                         try:
                             binding = notif.notification.visual.get_binding(
-                                winnot.KnownNotificationBindings.ToastGeneric)
+                                "ToastGeneric")  # KnownNotificationBindings.ToastGeneric
                             if binding is None:
                                 continue
 
