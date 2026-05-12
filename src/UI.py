@@ -842,7 +842,7 @@ class App(tk.Tk):
     def _cycle(self, direction: int):
         import time
         now = time.monotonic()
-        if now - self._last_cycle_time < 0.3:
+        if now - self._last_cycle_time < 0.1:
             return
         self._last_cycle_time = now
 
