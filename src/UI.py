@@ -160,6 +160,7 @@ class App(tk.Tk):
         )
 
         self._prev_hwnd: int | None = None
+        self._last_cycle_time: float = 0.0
 
         _raw_skip = cfg.get("char_skip_names", "[]") or "[]"
         try:
@@ -784,10 +785,10 @@ class App(tk.Tk):
             return
         try:
             _unhook_all()
-            if self._shortcut_next: keyboard.add_hotkey(self._shortcut_next, self._focus_next)
-            if self._shortcut_prev: keyboard.add_hotkey(self._shortcut_prev, self._focus_prev)
-            if self._shortcut_back: keyboard.add_hotkey(self._shortcut_back, self._focus_back)
-            if self._shortcut_main: keyboard.add_hotkey(self._shortcut_main, self._focus_main)
+            if self._shortcut_next: keyboard.add_hotkey(self._shortcut_next, self._focus_next, suppress=True)
+            if self._shortcut_prev: keyboard.add_hotkey(self._shortcut_prev, self._focus_prev, suppress=True)
+            if self._shortcut_back: keyboard.add_hotkey(self._shortcut_back, self._focus_back, suppress=True)
+            if self._shortcut_main: keyboard.add_hotkey(self._shortcut_main, self._focus_main, suppress=True)
             self._persist_config()
         except Exception:
             pass
@@ -807,30 +808,12 @@ class App(tk.Tk):
     def _focus_next(self):
         if not is_dofus_foreground():
             return
-
-        hwnd = win32gui.GetForegroundWindow()
-        title = win32gui.GetWindowText(hwnd)
-
-        if TITLE_PATTERN.match(title):
-            # état stable → immédiat
-            self._cycle(+1)
-        else:
-            # loading → exécuté dans la boucle UI
-            self.after(0, lambda: self._cycle(+1))
+        self.after(0, lambda: self._cycle(+1))
 
     def _focus_prev(self):
         if not is_dofus_foreground():
             return
-
-        hwnd = win32gui.GetForegroundWindow()
-        title = win32gui.GetWindowText(hwnd)
-
-        if TITLE_PATTERN.match(title):
-            # état stable → immédiat
-            self._cycle(-1)
-        else:
-            # loading → exécuté dans la boucle UI
-            self.after(0, lambda: self._cycle(-1))        
+        self.after(0, lambda: self._cycle(-1))
 
     def _focus_back(self):
         if not is_dofus_foreground():
@@ -847,6 +830,12 @@ class App(tk.Tk):
     # ── Persistance centralisée ───────────────────────────────────────────────
 
     def _cycle(self, direction: int):
+        import time
+        now = time.monotonic()
+        if now - self._last_cycle_time < 0.3:
+            return
+        self._last_cycle_time = now
+
         if not self._char_order:
             self.refresh_characters()
         if not self._char_order:
