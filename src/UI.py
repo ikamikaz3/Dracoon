@@ -26,8 +26,8 @@ except Exception:
     pass
 
 try:
-    import winsdk.windows.ui.notifications.management as winman
-    import winsdk.windows.ui.notifications as winnot
+    import winrt.windows.ui.notifications.management as winman
+    import winrt.windows.ui.notifications as winnot
 except Exception:
     pass
 
@@ -191,7 +191,7 @@ class App(tk.Tk):
         if not WIN32_OK:
             self.log_msg("pywin32 manquant → pip install pywin32", "error")
         if not WINSDK_OK:
-            self.log_msg("winsdk manquant → pip install winsdk", "error")
+            self.log_msg("winrt manquant → pip install winrt-Windows.UI.Notifications", "error")
         if not KEYBOARD_OK:
             self.log_msg("keyboard non chargé → pip install keyboard", "warn")
         if not TRAY_OK:
@@ -1256,7 +1256,7 @@ class App(tk.Tk):
     async def _listen(self):
         listener = winman.UserNotificationListener.current
         access   = await listener.request_access_async()
-        if access != winman.UserNotificationListenerAccessStatus.ALLOWED:
+        if access != winman.UserNotificationListenerAccessStatus.Allowed:
             self.after(0, self.log_msg,
                 "Accès notifications refusé ! "
                 "Active-les dans Paramètres → Système → Notifications.", "error")
@@ -1304,7 +1304,7 @@ class App(tk.Tk):
 
                 try:
                     notifications = await listener.get_notifications_async(
-                        winnot.NotificationKinds.TOAST)
+                        winnot.NotificationKinds.Toast)
                     new_notifs = [n for n in notifications if n.id not in seen_ids]
 
                     if new_notifs:
@@ -1315,7 +1315,7 @@ class App(tk.Tk):
                         seen_ids.add(notif.id)
                         try:
                             binding = notif.notification.visual.get_binding(
-                                winnot.KnownNotificationBindings.toast_generic)
+                                winnot.KnownNotificationBindings.ToastGeneric)
                             if binding is None:
                                 continue
 

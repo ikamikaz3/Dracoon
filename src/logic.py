@@ -34,8 +34,8 @@ except Exception:
     WIN32_OK = False
 
 try:
-    import winsdk.windows.ui.notifications.management as winman
-    import winsdk.windows.ui.notifications as winnot
+    import winrt.windows.ui.notifications.management as winman
+    import winrt.windows.ui.notifications as winnot
     WINSDK_OK = True
 except Exception:
     WINSDK_OK = False
